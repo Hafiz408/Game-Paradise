@@ -1,0 +1,102 @@
+body {
+    text-align: center;
+    background-color: #283149;
+  }
+  
+  h1 {
+    font-size: 5rem;
+    color: #DBEDF3;
+    font-family: "Arvo", cursive;
+    text-shadow: 3px 0 #DA0463;
+    margin: 25px;
+  
+  }
+  
+  footer {
+    color: #DBEDF3;
+    font-family: sans-serif;
+  }
+
+  .set {
+    margin: 1% auto 1%;
+  }
+  
+  .pressed {
+    box-shadow: 0 3px 4px 0 #DBEDF3;
+    opacity: 0.5;
+  }
+ 
+  .icon {
+    outline: none;
+    border: 15px solid #404B69;
+    font-size: 2rem;
+    font-family: 'Arvo', cursive;
+    line-height: 1.5;
+    font-weight: 900;
+    color: #da046f;
+    text-shadow: 3px 0 #97bfe6;
+    border-radius: 15px;
+    display: inline-block;
+    width: 150px;
+    height: 150px;
+    text-align: center;
+    margin: 3px 20px 0px;
+    background-color: white;
+  }
+
+  .grp{
+      margin: 30px 80px;
+      display: inline-block;
+
+  }
+
+  .w {
+    background-image: url("/static/images/rock.jpg");
+    background-size: 50%;
+  }
+  
+  .a {
+    background-image: url("/static/images/paper.jpg");
+    background-size: 50%;
+  }
+  
+  .s {
+    background-image: url("/static/images/scissor.jpg");
+    background-size: 50%;
+  }
+ 
+  .g {
+    width: 200px;
+    height: 170px;
+    margin: 10px 10px 5px;
+    background-size: 45%;
+    background-image: url("/static/images/pic2.jpg");
+  }
+
+  .scissor {
+    background-image: url("/static/images/scissor.jpg");
+  }
+
+  .rock {
+    background-image: url("/static/images/rock.jpg");
+  }
+
+  .paper {
+    background-image: url("/static/images/paper.jpg");
+  }
+
+  .txt {
+    font-size: 2rem;
+    color: #DBEDF3;
+    font-family: "Arvo", cursive;
+    text-shadow: 3px 0 #DA0463;
+    margin: 10px 20px;
+    text-decoration: none;
+  }
+
+  .btn {
+      padding: 20% 100%;
+      font-size: 20px;
+  }
+
+ 

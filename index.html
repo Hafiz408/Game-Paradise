@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Game Paradise</title>
+    <link rel="stylesheet" href="/static/css/index.css">
+    <link href="https://fonts.googleapis.com/css?family=Arvo" rel="stylesheet">
+    <script src="/socket.io/socket.io.js"></script>
+  </head>
+  <body>
+    <h1 id="title">Welcome to Game Paradise 🎏</h1>
+    <div class="set">
+        <form action="/rock-paper-scissors" method="get">
+            <button class="w icon">Rock Paper Scissors</button>
+        </form>
+        <form action="/tic-tac-toe" method="get">
+            <button class="a icon">Tic Tac Toe</button>
+        </form>
+        <form action="/hangman" method="get">
+            <button class="s icon">Hangman</button>
+        </form>      
+    </div>
+    <footer>Made with ❤️ by Hafiz408.</footer>
+  </body>
+  <script src="node_modules/jquery/dist/jquery.min.js"></script>
+  <script src="/static/js/rock-paper-scissors.js"></script>
+</html>
