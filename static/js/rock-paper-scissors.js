@@ -8,8 +8,6 @@ var c=0;
 
 var you = document.getElementById('you');
 var oppo = document.getElementById('oppo');
-var score = document.getElementById("score");
-var userCount = document.getElementById("userCount");
 var result = document.getElementById("result");
 var btn = document.getElementById("btn1");
 
@@ -26,7 +24,7 @@ var start = function(){
     you.classList.remove("paper","rock","scissors");
     oppo.classList.remove("paper","rock","scissors");
     choice=""
-    socket.emit('newGame');
+    socket.emit('newGame',1);
   }
   
 }
@@ -71,19 +69,20 @@ socket.on('wait', function(data){
   }  
 })
 
-socket.on('game',function(){
-  console.log("Game started");
-  if (choice==""){
-    result.innerText="Select your choice !!";
-  }else{
-    if (playerType=="1"){
-      socket.emit('choice1',choice);
+socket.on('game',function(roomId){
+  if(roomId==1){
+    console.log("Game started");
+    if (choice==""){
+      result.innerText="Select your choice !!";
     }else{
-      socket.emit('choice2',choice);
+      if (playerType=="1"){
+        socket.emit('choice1',choice);
+      }else{
+        socket.emit('choice2',choice);
+      }
     }
-  }
-  
-})
+  }  
+});
 
 socket.on('result',function(data){
   
