@@ -62,9 +62,10 @@ socket.on('wait', function(data){
     if (c<5){
       c++;
       setTimeout(start,2000);
-    }
-    else {
+    }else{
       result.innerText="Opponent not responding, do wait.";
+      // alert("Opponent left or isn't responding!! Go back.")
+      // result.innerText("Opponent left or isn't responding!! Go back.")
     }
   }  
 })
@@ -119,6 +120,22 @@ socket.on('result',function(data){
 
   btn.innerText="Again";
 
+})
+
+socket.on('nan',function(){
+  result.innerText="Opponent left!! Go back."
+  // alert("Opponent left!! Go back.");
+})
+
+socket.on('new',function(room){
+  if(room==1){
+    console.log("New game");
+    result.innerText="";
+    btn.innerText="Start";
+    you.classList.remove("paper","rock","scissors");
+    oppo.classList.remove("paper","rock","scissors");
+    choice=""
+  }
 })
 
 socket.on('full', function (msg) {

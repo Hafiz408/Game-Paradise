@@ -79,7 +79,7 @@ function checkResult(){
     diag[1]=position['3']+position['5']+position['7'];
 
     var val=Object.values(position);
-    console.log(val)
+    // console.log(val)
     var r=val.includes(-10);
 
     if(row[0]==0 || row[1]==0 || row[2]==0 || col[0]==0 || col[1]==0 || col[2]==0 || diag[0]==0 || diag[1]==0){
@@ -98,6 +98,11 @@ var players;
 var games=Array(3);
 for (let i = 0; i < 3; i++) {
   games[i] = {players: 0 , pid: [0 , 0]};
+}
+
+function getPlayers(){
+  console.log(room);
+  return games[room].players;
 }
 
 var room;
@@ -127,6 +132,7 @@ io.on('connection', function(socket) {
     }
 
     console.log(games[roomId]);
+    room=roomId;
     players = games[roomId].players
 
     socket.on('start', function(){
@@ -182,24 +188,42 @@ io.on('connection', function(socket) {
     });
 
     socket.on('newGame',function(data){
-      if(data==2){
-        for(var key in position){
-          position[key]=-10;
+      players=getPlayers();
+      // console.log("New");
+      // console.log(players);
+      if(players==2){
+        if(data==2){
+          for(var key in position){
+            position[key]=-10;
+          }
+          socket.broadcast.emit('new',roomId);
+        }else{
+          choice1="";
+          choice2="";
+          socket.broadcast.emit('new',roomId);
         }
       }else{
-        choice1="";
-        choice2="";
-      }
+        socket.emit('nan');
+        socket.broadcast.emit('nan');
+      }      
     });
 
   });
 
   socket.on('disconnect', function () {
     for (let i = 0; i < 3; i++) {
-        if (games[i].pid[0] == playerId || games[i].pid[1] == playerId)
-            games[i].players--;
+        if (games[i].pid[0] == playerId){
+          games[i].players--;
+          games[i].pid[0]=0;
+        }else if(games[i].pid[1] == playerId){
+          games[i].players--;
+          games[i].pid[1]=0;
+        }            
     }
+    socket.emit('nan');
+    socket.broadcast.emit('nan');
     console.log(playerId + ' disconnected');
+    console.log(games[room]);
   }); 
 
 });

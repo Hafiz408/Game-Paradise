@@ -126,6 +126,20 @@ socket.on('game',function(roomId){
 
 })
 
+socket.on('new',function(room){
+    if(room==2){
+        console.log("New game");
+        result.innerText="";
+        btn.innerText="Start";
+        clearAll();
+    }
+})
+
+socket.on('nan',function(){
+    result.innerText="Opponent left!! Go back."
+    // alert("Opponent left!! Go back.");
+  })
+
 socket.on('change',function(data){
     console.log("Change :");
     if(data.playerType=="1"){
