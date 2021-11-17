@@ -1,6 +1,8 @@
 # Game Paradise
  Small web application with few dual player games done using socket.io .
  
+ Click this link to check it out : https://game-paradise.herokuapp.com/
+ 
  ### To run this app:
   1. Clone this repository
   2. Run npm install
