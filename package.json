@@ -4,12 +4,26 @@
   "description": "Web app for 2 player mini games.",
   "main": "index.js",
   "scripts": {
+    "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "keywords": [
+    "socket.io",
+    "heroku",
+    "tic tac toe",
+    "hangman",
+    "rock paper scissors",
+    "web app",
+    "dual games",
+    "games"
+  ],
   "author": "Hafiz",
   "license": "ISC",
   "dependencies": {
     "express": "^4.17.1",
     "socket.io": "^4.3.2"
+  },
+  "engines": {
+    "node": "16.13.0"
   }
 }

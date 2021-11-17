@@ -6,8 +6,9 @@ var socketIO = require('socket.io');
 var app = express();
 var server = http.Server(app);
 var io = socketIO(server);
+var port = process.env.PORT || 5000;
 
-app.set('port', 5000);
+app.set('port', port);
 app.use('/static', express.static(__dirname + '/static'));
 
 app.get('/', function(request, response) {
