@@ -229,6 +229,6 @@ io.on('connection', function(socket) {
 
 });
 
-server.listen(5000, function() {
+server.listen(port, function() {
   console.log('Starting server on port 5000');
 });
