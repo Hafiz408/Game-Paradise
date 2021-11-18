@@ -27,6 +27,10 @@ app.get('/hangman', function(request, response) {
     response.sendFile(__dirname+'/hangman.html');
 });
 
+app.get('/about', function(request, response) {
+  response.sendFile(__dirname+'/about.html');
+});
+
 
 var choice = Array(151);
 for (let i = 0; i < 151; i++) {

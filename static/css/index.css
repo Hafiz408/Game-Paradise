@@ -7,8 +7,9 @@ body {
     font-size: 5rem;
     color: #DBEDF3;
     font-family: "Arvo", cursive;
+    font-weight: 900;
     text-shadow: 3px 0 #DA0463;
-  
+    margin: 2%;
   }
   
   footer {
@@ -21,6 +22,23 @@ body {
     margin: 0;
   }
   
+  /* .heading {
+    display: inline-block;
+  } */
+
+  .btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    opacity: 0.6;
+    box-shadow: 3px 2px #DA0463;
+  }
+
+  .fas {
+    font-size: 25px;
+    margin: 5px;
+  }
+
   .w {
     background-image: url("/static/images/pic2.jpg");
   }

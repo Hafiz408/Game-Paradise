@@ -1,0 +1,64 @@
+body {
+    text-align: center;
+    background-color: #283149;
+  }
+  
+  h1 {
+    font-size: 5rem;
+    color: #DBEDF3;
+    font-family: "Arvo", cursive;
+    font-weight: 900;
+    text-shadow: 3px 0 #DA0463;
+    margin: 5%;
+  }
+  
+  footer {
+    color: #DBEDF3;
+    font-family: sans-serif;
+  }
+
+  form {
+    display: inline-block;
+    margin: 0;
+  }
+  
+  /* .heading {
+    display: inline-block;
+  } */
+
+  .btn {
+    margin: 20% 0%;
+    padding: 10px 40px;
+  }
+
+  .fas {
+    font-size: 25px;
+    margin: 5px;
+  }
+
+  .txt {
+    font-size: 2rem;
+    color: beige;
+    padding: 5px;
+  }
+
+  .grp {
+    /* border: 1px solid white; */
+    margin: 1% 22%;
+  }
+
+  .tag {
+    color: #DA0463;
+    text-shadow: 3px 0 #979495;   
+
+  }
+
+  a {
+    font-style: italic;
+    text-decoration: none;
+    color: beige;
+  }
+
+  a:hover {
+    color: #DA0463;
+  }
