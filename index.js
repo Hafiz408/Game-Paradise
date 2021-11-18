@@ -27,7 +27,12 @@ app.get('/hangman', function(request, response) {
     response.sendFile(__dirname+'/hangman.html');
 });
 
-var choice1 = "",choice2 = "";
+
+var choice = Array(151);
+for (let i = 0; i < 151; i++) {
+  choice[i] = {choice1: "" , choice2: ""};
+}
+
 
 function getWinner(p, c) {
   if (p === c) {
@@ -53,33 +58,41 @@ function getWinner(p, c) {
   }
 }
 
-function result(roomID,socket) {
-  var winner = getWinner(choice1, choice2);
+function result(roomId,socket) {
+  var winner = getWinner(choice[roomId].choice1, choice[roomId].choice2);
   socket.emit('result', {
       winner: winner,
-      choice1: choice1,
-      choice2: choice2
+      choice1: choice[roomId].choice1,
+      choice2: choice[roomId].choice2,
+      roomId : roomId,
   });
   
 }
 
-function checkResult(){
+var position = Array(151);
+for (let i = 0; i < 151; i++) {
+  position[i]={'1':-10,'2':-10,'3':-10,'4':-10,'5':-10,'6':-10,'7':-10,'8':-10,'9':-10}
+}
+
+// var position={'1':-10,'2':-10,'3':-10,'4':-10,'5':-10,'6':-10,'7':-10,'8':-10,'9':-10}
+
+function checkResult(roomId){
   var row=[-1,-1,-1];
   var col=[-1,-1,-1];
   var diag=[-1,-1];
 
-    row[0]=position['1']+position['2']+position['3'];
-    row[1]=position['4']+position['5']+position['6'];
-    row[2]=position['7']+position['8']+position['9'];
+    row[0]=position[roomId]['1']+position[roomId]['2']+position[roomId]['3'];
+    row[1]=position[roomId]['4']+position[roomId]['5']+position[roomId]['6'];
+    row[2]=position[roomId]['7']+position[roomId]['8']+position[roomId]['9'];
 
-    col[0]=position['1']+position['4']+position['7'];
-    col[1]=position['2']+position['5']+position['6'];
-    col[2]=position['3']+position['6']+position['9'];
+    col[0]=position[roomId]['1']+position[roomId]['4']+position[roomId]['7'];
+    col[1]=position[roomId]['2']+position[roomId]['5']+position[roomId]['6'];
+    col[2]=position[roomId]['3']+position[roomId]['6']+position[roomId]['9'];
 
-    diag[0]=position['1']+position['5']+position['9'];
-    diag[1]=position['3']+position['5']+position['7'];
+    diag[0]=position[roomId]['1']+position[roomId]['5']+position[roomId]['9'];
+    diag[1]=position[roomId]['3']+position[roomId]['5']+position[roomId]['7'];
 
-    var val=Object.values(position);
+    var val=Object.values(position[roomId]);
     // console.log(val)
     var r=val.includes(-10);
 
@@ -95,25 +108,35 @@ function checkResult(){
     }
 }
 
-var players;
-var games=Array(3);
-for (let i = 0; i < 3; i++) {
-  games[i] = {players: 0 , pid: [0 , 0]};
+var playersC;
+var games=Array(151);
+for (let i = 0; i < 151; i++) {
+  games[i] = {players: 0 , pid: [0 , 0] , game: ""};
 }
 
-function getPlayers(){
-  console.log(room);
-  return games[room].players;
+function getPlayers(roomId){
+  console.log(roomId);
+  return games[roomId].players;
 }
+
 
 var room;
 
 io.on('connection', function(socket) {
-  var playerId =  Math.floor((Math.random() * 100) + 1);
+  var playerId =  Math.floor((Math.random() * 1000) + 1);
   console.log(playerId + ' connected');
 
-  socket.on('joined',function(roomId){
-    room=roomId;
+  socket.on('joined',function(data){
+    roomId=data.roomId;
+    if(games[roomId].game==""){
+      games[roomId].game = data.game;
+    }else{
+      playersC=getPlayers(roomId);
+      if(playersC==0){
+        games[roomId].game = data.game;
+      }
+    }    
+    socket.join(roomId);
     if (games[roomId].players < 2) {
       if(playerId == games[roomId].pid[0] || playerId == games[roomId].pid[1]){
         console.log("Same player twice in room");
@@ -121,9 +144,9 @@ io.on('connection', function(socket) {
         var count = ++games[roomId].players;
         games[roomId].pid[games[roomId].players - 1] = playerId;
         if(count==1){
-          socket.emit('player1');
+          socket.emit('player1',roomId);
         }else{
-          socket.emit('player2');
+          socket.emit('player2',roomId);
         }
       }      
     }
@@ -132,99 +155,119 @@ io.on('connection', function(socket) {
         return;
     }
 
-    console.log(games[roomId]);
-    room=roomId;
-    players = games[roomId].players
+    console.log("Room "+roomId);
+    console.log(games[roomId]);    
 
-    socket.on('start', function(){
-      if(players==2)
+    socket.on('start', function(data){
+      playersC = games[data.roomId].players
+      if(playersC==2)
       {
-        socket.broadcast.emit('syn');
-        socket.emit('game',roomId);
-        socket.broadcast.emit('game',roomId);
+        socket.broadcast.emit('syn',roomId);
+        // socket.emit('game',roomId);
+        // socket.broadcast.emit('game',roomId);
+        socket.emit('game',data);
+        socket.broadcast.emit('game',data);
       }
       else{
         socket.emit('wait',1);
       }
     });
 
-    position={'1':-10,'2':-10,'3':-10,'4':-10,'5':-10,'6':-10,'7':-10,'8':-10,'9':-10}
-
     socket.on('move',function(data){
       console.log(data);
       if(data.playerType=="1"){
-        position[data.id]=1
+        position[data.roomId][data.id]=1
       }else{
-        position[data.id]=0
+        position[data.roomId][data.id]=0
       }
-      var winner=checkResult();
+      var winner=checkResult(data.roomId);
       if(winner){
+        console.log("winner");
         socket.broadcast.emit('change',data)
-        socket.emit('result',{room:2,winner:winner});
-        socket.broadcast.emit('result',{room:2,winner:winner});
+        socket.emit('result',{room:2,winner:winner,roomId:data.roomId});
+        socket.broadcast.emit('result',{room:2,winner:winner,roomId:data.roomId});
       }else{
-        socket.broadcast.emit('change',data)
+        socket.broadcast.to(data.roomId).emit('change',data)
       }
-      // console.log(position);
+      console.log("Position "+data.roomId);
+      console.log(position[data.roomId]);
     });
 
     socket.on('choice1',function(data){
-      choice1=data;
-      console.log(choice1,choice2);
-      if (choice2 != ""){
-        result(roomId,socket);
+      choice[data.roomId].choice1=data.choice;
+      // choice1=data.choice;
+      console.log(data.roomId);
+      console.log(choice[data.roomId]);
+      if (choice[data.roomId].choice2 != ""){
+        result(data.roomId,socket);
       }else{
         socket.emit('wait',2);
       }
     });
       
     socket.on('choice2', function(data) {
-      choice2 = data;
-      console.log(choice1, choice2);
-      if (choice1 != "") {
-          result(roomId,socket);
+      choice[data.roomId].choice2=data.choice;
+      // choice2 = data.choice;
+      console.log(data.roomId);
+      console.log(choice[data.roomId]);
+      if (choice[data.roomId].choice1 != "") {
+          result(data.roomId,socket);
       }else{
         socket.emit('wait',2);
       }
     });
 
     socket.on('newGame',function(data){
-      players=getPlayers();
+      playersC=getPlayers(data.roomId);
       // console.log("New");
       // console.log(players);
-      if(players==2){
-        if(data==2){
-          for(var key in position){
-            position[key]=-10;
+      if(playersC==2){
+        if(data.game=="2"){
+          // for(var key in position){
+          //   position[key]=-10;
+          // }
+          for (let i = 0; i < 151; i++) {
+            position[i]={'1':-10,'2':-10,'3':-10,'4':-10,'5':-10,'6':-10,'7':-10,'8':-10,'9':-10}
           }
-          socket.broadcast.emit('new',roomId);
+          socket.to(data.roomId).emit('new',data);
         }else{
           choice1="";
           choice2="";
-          socket.broadcast.emit('new',roomId);
+          choice[data.roomId].choice1="";
+          choice[data.roomId].choice2="";
+          socket.to(data.roomId).emit('new',data);
         }
       }else{
-        socket.emit('nan');
-        socket.broadcast.emit('nan');
+        // socket.emit('nan');
+        // socket.broadcast.emit('nan');
+        socket.to(data.roomId).emit('nan');
+        socket.broadcast.to(data.roomId).emit('nan');
       }      
     });
 
   });
 
   socket.on('disconnect', function () {
-    for (let i = 0; i < 3; i++) {
+    var r;
+    for (let i = 0; i < 151; i++) {
         if (games[i].pid[0] == playerId){
           games[i].players--;
           games[i].pid[0]=0;
+          r=i;
         }else if(games[i].pid[1] == playerId){
           games[i].players--;
           games[i].pid[1]=0;
+          r=i;
         }            
     }
-    socket.emit('nan');
-    socket.broadcast.emit('nan');
+
+    // socket.leave(r); 
+    socket.broadcast.emit('player1',r);  
+    
+    socket.broadcast.emit('nan',r);
+    // socket.broadcast.to(r).emit('nan');
     console.log(playerId + ' disconnected');
-    console.log(games[room]);
+    console.log(games[r]);
   }); 
 
 });

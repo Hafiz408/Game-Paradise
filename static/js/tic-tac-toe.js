@@ -6,18 +6,27 @@ var type;
 var c=0;
 var turn=false;
 var gameOn=false;
+var rn;
 
 var result = document.getElementById("result");
 var btn = document.getElementById("btn1");
 
+function begin(){
+    rn=prompt("Enter room number 51-100 :");
+    console.log("Room "+rn);
+    socket.emit('joined',{roomId:rn, game:"2"});
+  }
+
+begin();
+
 var move = function(id){
     cell=document.getElementById(id);
-    if(gameOn){
+    if(!gameOn){
         result.innerText="Click Start to begin";
     }
     if (!checkPosition(id)){
         if(turn){
-            socket.emit('move',{playerType:playerType,id:id});
+            socket.emit('move',{playerType:playerType,id:id,roomId:rn});
             result.innerText="Opponent's turn";
             position[id]=true
             if (playerType=="1"){
@@ -71,7 +80,7 @@ var start = function(){
     type=btn.textContent;
     if(!gameOn){
         if(type==="Start"){
-            socket.emit('start');
+            socket.emit('start',{roomId:rn,game:"2"});
             gameOn=true;
             btn.innerText="Again";
           }else{
@@ -79,114 +88,135 @@ var start = function(){
             result.innerText="";
             btn.innerText="Start";
             clearAll();
-            socket.emit('newGame',2);
+            socket.emit('newGame',{roomId:rn,game:"2"});
           }    
     }else{
         result.innerText="Finish the present game";
     }
   }
 
-socket.emit('joined',2);
 
-socket.on('player1',function(){
-    playerType="1";
-    console.log("player:"+playerType);
-});
+  socket.on('player1',function(roomId){
+    if(roomId==rn){
+      playerType="1";
+      console.log("player:"+playerType);
+    }
+  })
   
-socket.on('player2',function(){
-    playerType="2";
-    console.log("player:"+playerType);
-});
+  socket.on('player2',function(roomId){
+    if(roomId==rn){
+      playerType="2";
+      console.log("player:"+playerType);
+    }
+  })
 
-socket.on('syn',function(){
-    gameOn=true;
-    btn.innerText="Again";
+socket.on('syn',function(roomId){
+    if(roomId==rn){
+        gameOn=true;
+        btn.innerText="Again";
+    }
 });
 
 socket.on('full', function (msg) {
     console.log("Room full");
-    alert("Room full !!");
+    alert("Room full !! Enter another number.");
+    begin();
 });
 
-socket.on('game',function(roomId){
-    if(roomId==2){
-        console.log("Game on");
-        if(playerType=="1"){
-            turn=true
-        }else{
-            turn=false
-        }
-        if(turn){
-            result.innerText="Your turn"
-
-        }else{
-            result.innerText="Opponent's turn"
-        }
-    }    
+socket.on('game',function(data){
+    if(data.roomId==rn){
+        if(data.game=="2"){
+            console.log("Game on");
+            gameOn=true;
+            if(playerType=="1"){
+                turn=true
+            }else{
+                turn=false
+            }
+            if(turn){
+                result.innerText="Your turn"
+    
+            }else{
+                result.innerText="Opponent's turn"
+            }
+        }  
+    }  
 
 })
 
-socket.on('new',function(room){
-    if(room==2){
-        console.log("New game");
-        result.innerText="";
-        btn.innerText="Start";
-        clearAll();
+socket.on('new',function(data){
+    if(data.roomId==rn){
+        if(data.game=="2"){
+            console.log("New game");
+            result.innerText="";
+            btn.innerText="Start";
+            clearAll();
+        }
     }
 })
 
-socket.on('nan',function(){
-    result.innerText="Opponent left!! Go back."
-    alert("Opponent left!! Go back.");
+socket.on('nan',function(roomId){
+    if(roomId==rn){
+        result.innerText="Opponent left!! Go back."
+        alert("Opponent left!! Go back.");
+        gameOn=false;
+        btn.innerText="Start";
+        result.innerText="";
+        clearAll();
+    }
   })
 
 socket.on('change',function(data){
-    console.log("Change :");
-    if(data.playerType=="1"){
-        table[data.id]="X"
-    }else{
-        table[data.id]="O"
+    if(data.roomId==rn){
+        console.log("Change :");
+        if(data.playerType=="1"){
+            table[data.id]="X"
+        }else{
+            table[data.id]="O"
+        }
+        position[data.id]=true
+        console.log(data.playerType);
+        console.log(table);
+        console.log(position);
+        displayTable();
+        if(playerType!=data.playerType){
+            turn=true;
+        }else{
+            turn=false;
+        }
+        result.innerText="Your turn";
     }
-    position[data.id]=true
-    console.log(data.playerType);
-    console.log(table);
-    console.log(position);
-    displayTable();
-    if(playerType!=data.playerType){
-        turn=true;
-    }else{
-        turn=false;
-    }
-    result.innerText="Your turn";
 });
 
 socket.on('wait', function(data){
-    if (data==1){
-      console.log("Not enough players");
-      alert("Waiting for opponent...Ask your friend to join.");
-    }else{
-      result.innerText="Waiting for opponent's choice";
-      if (c<5){
-        c++;
-        setTimeout(start,2000);
-      }
-      else {
-        result.innerText="Opponent not responding, do wait.";
-      }
-    }  
+      if (data==1){
+        console.log("Not enough players");
+        alert("Waiting for opponent ... \nAsk your friend to join room "+rn+" .");
+      }else{
+        result.innerText="Waiting for opponent's choice";
+        if (c<5){
+          c++;
+          setTimeout(start,2000);
+        }else{
+          result.innerText="Opponent not responding, do wait.";
+          setTimeout(start,2000);
+        }
+      }  
   });
 
   socket.on('result',function(data){
-      turn=false;
-      if(data.room==2){
-          if (data.winner==playerType){
-            result.innerText="Won 🤩";
-          }else if (data.winner=="draw"){
-            result.innerText="Draw 😬";
-          }else{
-            result.innerText="Lost ☹️";
-          }
-          gameOn=false;
+      if(data.roomId==rn){
+        turn=false;
+        if(data.room==2){
+            if (data.winner==playerType){
+              result.innerText="Won 🤩";
+            }else if (data.winner=="draw"){
+              result.innerText="Draw 😬";
+            }else{
+              result.innerText="Lost ☹️";
+            }
+            gameOn=false;
+        }
       }
   });
 

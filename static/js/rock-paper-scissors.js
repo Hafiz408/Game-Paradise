@@ -1,30 +1,36 @@
 var socket = io();
 
-var roomId;
 var choice="";
 var playerType;
 var type;
 var c=0;
+var rn;
 
 var you = document.getElementById('you');
 var oppo = document.getElementById('oppo');
 var result = document.getElementById("result");
 var btn = document.getElementById("btn1");
 
-socket.emit('joined',1);
+function begin(){
+  rn=prompt("Enter room number 1-50 :");
+  console.log("Room "+rn);
+  socket.emit('joined',{roomId:rn,game:"1"});
+}
+
+begin();
 
 var start = function(){
   type=btn.textContent;
   if(type==="Start"){
-    socket.emit('start',choice);
+    socket.emit('start',{roomId:rn,game:"1",choice:choice});
   }else{
     console.log("New game");
     result.innerText="";
+    choice="";
     btn.innerText="Start";
-    you.classList.remove("paper","rock","scissors");
-    oppo.classList.remove("paper","rock","scissors");
-    choice=""
-    socket.emit('newGame',1);
+    you.classList.remove("paper","rock","scissor");
+    oppo.classList.remove("paper","rock","scissor");
+    socket.emit('newGame',{roomId:rn,game:"1"});
   }
   
 }
@@ -32,7 +38,7 @@ var start = function(){
 var move = function(id){
   choice = id;
   console.log('choice : '+ choice);
-  you.classList.remove("paper","rock","scissors");
+  you.classList.remove("paper","rock","scissor");
   if (choice=='paper'){
     you.classList.add("paper");
   }else if (choice=='rock'){
@@ -43,20 +49,24 @@ var move = function(id){
   }   
 }
 
-socket.on('player1',function(){
-  playerType="1";
-  console.log("player:"+playerType);
+socket.on('player1',function(roomId){
+  if(roomId==rn){
+    playerType="1";
+    console.log("player:"+playerType);
+  }
 })
 
-socket.on('player2',function(){
-  playerType="2";
-  console.log("player:"+playerType);
+socket.on('player2',function(roomId){
+  if(roomId==rn){
+    playerType="2";
+    console.log("player:"+playerType);
+  }
 })
 
 socket.on('wait', function(data){
   if (data==1){
     console.log("Not enough players");
-    alert("Waiting for opponent...Ask your friend to join.");
+    alert("Waiting for opponent ... \nAsk your friend to join room "+rn+" .");
   }else{
     result.innerText="Waiting for opponent's choice";
     if (c<5){
@@ -64,47 +74,47 @@ socket.on('wait', function(data){
       setTimeout(start,2000);
     }else{
       result.innerText="Opponent not responding, do wait.";
-      // alert("Opponent left or isn't responding!! Go back.")
-      // result.innerText("Opponent left or isn't responding!! Go back.")
+      setTimeout(start,2000);
     }
   }  
 })
 
-socket.on('game',function(roomId){
-  if(roomId==1){
-    console.log("Game started");
-    if (choice==""){
-      result.innerText="Select your choice !!";
-    }else{
-      if (playerType=="1"){
-        socket.emit('choice1',choice);
+socket.on('game',function(data){
+  if(data.roomId==rn){
+    if(data.game=="1"){
+      console.log("Game started");
+      if (choice==""){
+        result.innerText="Select your choice !!";
       }else{
-        socket.emit('choice2',choice);
+        if (playerType=="1"){
+          socket.emit('choice1',{choice:choice,roomId:rn});
+        }else{
+          socket.emit('choice2',{choice:choice,roomId:rn});
+        }
       }
-    }
+    }  
   }  
 });
 
 socket.on('result',function(data){
-  
+
+  oppo.classList.remove("paper","rock","scissor");
   if (playerType=="1"){
-    oppo.classList.remove("paper","rock","scissors");
-    if (data.choice2=='paper'){
+    
+    if (data.choice2==='paper'){
       oppo.classList.add("paper");
-    }else if (data.choice2=='rock'){
+    }else if (data.choice2==='rock'){
       oppo.classList.add("rock");
-    }
-    else{
+    }else if (data.choice2==='scissor'){
       oppo.classList.add("scissor");
     }
   }else{
-    oppo.classList.remove("paper","rock","scissors");
-    if (data.choice1=='paper'){
+    
+    if (data.choice1==='paper'){
       oppo.classList.add("paper");
-    }else if (data.choice1=='rock'){
+    }else if (data.choice1==='rock'){
       oppo.classList.add("rock");
-    }
-    else{
+    }else if (data.choice2==='scissor'){
       oppo.classList.add("scissor");
     }
   }
@@ -118,29 +128,36 @@ socket.on('result',function(data){
     result.innerText="Lost ☹️";
   }
 
+  setTimeout(5000);
   btn.innerText="Again";
 
 })
 
-socket.on('nan',function(){
-  result.innerText="Opponent left!! Go back."
-  alert("Opponent left!! Go back.");
+socket.on('nan',function(roomId){
+  if(roomId==rn){
+    console.log('nan received')
+    result.innerText=""
+    alert("Opponent left!! Go back.");
+    // socket.emit('newGame',{roomId:rn,game:1});
+  }
 })
 
-socket.on('new',function(room){
-  if(room==1){
+
+socket.on('new',function(data){
+  if(data.roomId==rn){
     console.log("New game");
     result.innerText="";
+    choice="";
     btn.innerText="Start";
-    you.classList.remove("paper","rock","scissors");
-    oppo.classList.remove("paper","rock","scissors");
-    choice=""
+    you.classList.remove("paper","rock","scissor");
+    oppo.classList.remove("paper","rock","scissor");
   }
 })
 
 socket.on('full', function (msg) {
   console.log("Room full");
-  alert("Room full !!");
+  alert("Room full !! Enter another number.");
+  begin();
 });
 
 
