@@ -28,6 +28,11 @@ app.get('/hangman', function(request, response) {
 });
 
 var choice1 = "",choice2 = "";
+var choice = Array(100);
+for (let i = 0; i < 100; i++) {
+  choice[i] = {choice1: "" , choice2: ""};
+}
+
 
 function getWinner(p, c) {
   if (p === c) {
@@ -53,12 +58,12 @@ function getWinner(p, c) {
   }
 }
 
-function result(roomID,socket) {
-  var winner = getWinner(choice1, choice2);
+function result(roomId,socket) {
+  var winner = getWinner(choice[roomId].choice1, choice[roomId].choice2);
   socket.emit('result', {
       winner: winner,
-      choice1: choice1,
-      choice2: choice2
+      choice1: choice[roomId].choice1,
+      choice2: choice[roomId].choice2
   });
   
 }
@@ -95,16 +100,17 @@ function checkResult(){
     }
 }
 
-var players;
-var games=Array(3);
-for (let i = 0; i < 3; i++) {
-  games[i] = {players: 0 , pid: [0 , 0]};
+ var playersC;
+var games=Array(100);
+for (let i = 0; i < 100; i++) {
+  games[i] = {players: 0 , pid: [0 , 0] , game: ""};
 }
 
-function getPlayers(){
-  console.log(room);
-  return games[room].players;
+function getPlayers(roomId){
+  console.log(roomId);
+  return games[roomId].players;
 }
+
 
 var room;
 
@@ -112,8 +118,10 @@ io.on('connection', function(socket) {
   var playerId =  Math.floor((Math.random() * 100) + 1);
   console.log(playerId + ' connected');
 
-  socket.on('joined',function(roomId){
-    room=roomId;
+  socket.on('joined',function(data){
+    roomId=data.roomId;
+    games[roomId].game=data.game;
+    socket.join(roomId);
     if (games[roomId].players < 2) {
       if(playerId == games[roomId].pid[0] || playerId == games[roomId].pid[1]){
         console.log("Same player twice in room");
@@ -121,9 +129,9 @@ io.on('connection', function(socket) {
         var count = ++games[roomId].players;
         games[roomId].pid[games[roomId].players - 1] = playerId;
         if(count==1){
-          socket.emit('player1');
+          socket.emit('player1',roomId);
         }else{
-          socket.emit('player2');
+          socket.emit('player2',roomId);
         }
       }      
     }
@@ -132,16 +140,17 @@ io.on('connection', function(socket) {
         return;
     }
 
-    console.log(games[roomId]);
-    room=roomId;
-    players = games[roomId].players
+    console.log("Room "+roomId);
+    console.log(games[roomId]);    
 
-    socket.on('start', function(){
-      if(players==2)
+    socket.on('start', function(data){
+      playersC = games[data.roomId].players
+      if(playersC==2)
       {
         socket.broadcast.emit('syn');
-        socket.emit('game',roomId);
-        socket.broadcast.emit('game',roomId);
+        // socket.emit('game',roomId);
+        // socket.broadcast.emit('game',roomId);
+        socket.emit('game',data.game);
       }
       else{
         socket.emit('wait',1);
@@ -169,62 +178,80 @@ io.on('connection', function(socket) {
     });
 
     socket.on('choice1',function(data){
-      choice1=data;
-      console.log(choice1,choice2);
-      if (choice2 != ""){
-        result(roomId,socket);
+      choice[data.roomId].choice1=data.choice;
+      // choice1=data.choice;
+      console.log(data.roomId);
+      console.log(choice[data.roomId]);
+      if (choice[data.roomId].choice2 != ""){
+        result(data.roomId,socket);
       }else{
         socket.emit('wait',2);
       }
     });
       
     socket.on('choice2', function(data) {
-      choice2 = data;
-      console.log(choice1, choice2);
-      if (choice1 != "") {
-          result(roomId,socket);
+      choice[data.roomId].choice2=data.choice;
+      // choice2 = data.choice;
+      console.log(data.roomId);
+      console.log(choice[data.roomId]);
+      if (choice[data.roomId].choice1 != "") {
+          result(data.roomId,socket);
       }else{
         socket.emit('wait',2);
       }
     });
 
     socket.on('newGame',function(data){
-      players=getPlayers();
+      playersC=getPlayers(data.roomId);
       // console.log("New");
       // console.log(players);
-      if(players==2){
-        if(data==2){
+      if(playersC==2){
+        if(data.game==2){
           for(var key in position){
             position[key]=-10;
           }
-          socket.broadcast.emit('new',roomId);
+          socket.to(data.roomId).emit('new',data);
         }else{
           choice1="";
           choice2="";
-          socket.broadcast.emit('new',roomId);
+          choice[data.roomId].choice1="";
+          choice[data.roomId].choice2="";
+          socket.to(data.roomId).emit('new',data);
         }
       }else{
-        socket.emit('nan');
-        socket.broadcast.emit('nan');
+        // socket.emit('nan');
+        // socket.broadcast.emit('nan');
+        socket.to(data.roomId).emit('nan');
+        socket.broadcast.to(data.roomId).emit('nan');
       }      
     });
 
   });
 
   socket.on('disconnect', function () {
-    for (let i = 0; i < 3; i++) {
+    var r;
+    for (let i = 0; i < 100; i++) {
         if (games[i].pid[0] == playerId){
           games[i].players--;
           games[i].pid[0]=0;
+          r=i;
         }else if(games[i].pid[1] == playerId){
           games[i].players--;
           games[i].pid[1]=0;
+          r=i;
         }            
     }
-    socket.emit('nan');
-    socket.broadcast.emit('nan');
+
+    socket.leave(r); 
+    socket.broadcast.emit('player1',r);    
+    // if(games[r].players==0){
+    //   games[r].game="";
+    // }  
+    
+    socket.broadcast.emit('nan',r);
+    // socket.broadcast.to(r).emit('nan');
     console.log(playerId + ' disconnected');
-    console.log(games[room]);
+    console.log(games[r]);
   }); 
 
 });
