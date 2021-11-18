@@ -137,7 +137,7 @@ socket.on('new',function(room){
 
 socket.on('nan',function(){
     result.innerText="Opponent left!! Go back."
-    // alert("Opponent left!! Go back.");
+    alert("Opponent left!! Go back.");
   })
 
 socket.on('change',function(data){
@@ -163,7 +163,7 @@ socket.on('change',function(data){
 socket.on('wait', function(data){
     if (data==1){
       console.log("Not enough players");
-      alert("Waiting for opponent...");
+      alert("Waiting for opponent...Ask your friend to join.");
     }else{
       result.innerText="Waiting for opponent's choice";
       if (c<5){

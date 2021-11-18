@@ -56,7 +56,7 @@ socket.on('player2',function(){
 socket.on('wait', function(data){
   if (data==1){
     console.log("Not enough players");
-    alert("Waiting for opponent...");
+    alert("Waiting for opponent...Ask your friend to join.");
   }else{
     result.innerText="Waiting for opponent's choice";
     if (c<5){
@@ -124,7 +124,7 @@ socket.on('result',function(data){
 
 socket.on('nan',function(){
   result.innerText="Opponent left!! Go back."
-  // alert("Opponent left!! Go back.");
+  alert("Opponent left!! Go back.");
 })
 
 socket.on('new',function(room){
