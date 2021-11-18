@@ -12,7 +12,7 @@ var result = document.getElementById("result");
 var btn = document.getElementById("btn1");
 
 function begin(){
-  rn=prompt("Enter room number 1-99 :");
+  rn=prompt("Enter room number 1-50 :");
   console.log("Room "+rn);
   socket.emit('joined',{roomId:rn,game:"1"});
 }
@@ -30,7 +30,7 @@ var start = function(){
     btn.innerText="Start";
     you.classList.remove("paper","rock","scissor");
     oppo.classList.remove("paper","rock","scissor");
-    socket.emit('newGame',{roomId:rn,game:1});
+    socket.emit('newGame',{roomId:rn,game:"1"});
   }
   
 }
@@ -79,22 +79,25 @@ socket.on('wait', function(data){
   }  
 })
 
-socket.on('game',function(type){
-  if(type=="1"){
-    console.log("Game started");
-    if (choice==""){
-      result.innerText="Select your choice !!";
-    }else{
-      if (playerType=="1"){
-        socket.emit('choice1',{choice:choice,roomId:rn});
+socket.on('game',function(data){
+  if(data.roomId==rn){
+    if(data.game=="1"){
+      console.log("Game started");
+      if (choice==""){
+        result.innerText="Select your choice !!";
       }else{
-        socket.emit('choice2',{choice:choice,roomId:rn});
+        if (playerType=="1"){
+          socket.emit('choice1',{choice:choice,roomId:rn});
+        }else{
+          socket.emit('choice2',{choice:choice,roomId:rn});
+        }
       }
-    }
+    }  
   }  
 });
 
 socket.on('result',function(data){
+
   oppo.classList.remove("paper","rock","scissor");
   if (playerType=="1"){
     
@@ -125,6 +128,7 @@ socket.on('result',function(data){
     result.innerText="Lost ☹️";
   }
 
+  setTimeout(5000);
   btn.innerText="Again";
 
 })
@@ -137,6 +141,7 @@ socket.on('nan',function(roomId){
     // socket.emit('newGame',{roomId:rn,game:1});
   }
 })
+
 
 socket.on('new',function(data){
   if(data.roomId==rn){
