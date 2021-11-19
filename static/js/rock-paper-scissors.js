@@ -13,8 +13,15 @@ var btn = document.getElementById("btn1");
 
 function begin(){
   rn=prompt("Enter room number 1-50 :");
-  console.log("Room "+rn);
-  socket.emit('joined',{roomId:rn,game:"1"});
+  if(rn === null){
+    window.location.assign('/');
+  }else if(rn>0 && rn<51){
+      console.log("Room "+rn);
+      socket.emit('joined',{roomId:rn, game:"1"});
+  }else{
+      alert("Enter a valid Room number !!");
+      begin();
+  }
 }
 
 begin();
