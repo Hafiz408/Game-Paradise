@@ -4,11 +4,11 @@ var path = require('path');
 var socketIO = require('socket.io');
 
 var app = express();
-var server = http.Server(app);
+var server = http.createServer(app);
 var io = socketIO(server);
 var port = process.env.PORT || 5000;
 
-app.set('port', port);
+// app.set('port', port);
 app.use('/static', express.static(__dirname + '/static'));
 
 app.get('/', function(request, response) {
@@ -23,8 +23,8 @@ app.get('/tic-tac-toe', function(request, response) {
     response.sendFile(__dirname+'/tic-tac-toe.html');
 });
 
-app.get('/hangman', function(request, response) {
-    response.sendFile(__dirname+'/hangman.html');
+app.get('/chess', function(request, response) {
+    response.sendFile(__dirname+'/chess.html');
 });
 
 app.get('/about', function(request, response) {
@@ -125,8 +125,10 @@ function getPlayers(roomId){
 
 
 var room;
+var players;
 
 io.on('connection', function(socket) {
+  var color;
   var playerId =  Math.floor((Math.random() * 1000) + 1);
   console.log(playerId + ' connected');
 
@@ -251,6 +253,83 @@ io.on('connection', function(socket) {
 
   });
 
+  socket.on('joinedC', function (roomId) {
+    // games[roomId] = {}
+    console.log("chess join "+roomId)
+    if(games[roomId].game==""){
+      games[roomId].game = "3";
+    }else{
+      playersC=getPlayers(roomId);
+      if(playersC==0){
+        games[roomId].game = "3";
+      }
+    }   
+    
+    if (games[roomId].players < 2) {
+        games[roomId].players++;
+        games[roomId].pid[games[roomId].players - 1] = playerId;
+    }
+    else{
+        socket.emit('full', roomId)
+        return;
+    }
+    
+    console.log(games[roomId]);
+    players = games[roomId].players
+    
+
+    if (players % 2 == 0) color = 'black';
+    else color = 'white';
+
+    socket.emit('player', { playerId, players, color, roomId })
+    // players--;
+    if(players==2){
+        color='white';
+        socket.broadcast.emit('player', { playerId, players, color, roomId })
+    }
+    
+});
+
+
+socket.on('moveC', function (msg) {
+    socket.broadcast.emit('moveC', msg);
+    // console.log(msg);
+});
+
+socket.on('play', function (msg) {
+    socket.broadcast.emit('play', msg);
+    console.log("ready " + msg);
+});
+
+socket.on('gameOver',function(msg){
+    socket.broadcast.emit('gameOver',msg);
+    console.log("Game Over");
+})
+
+socket.on('chessStart',function(roomId){
+    players = games[roomId].players
+    console.log("Chess start")
+    console.log("Players in room "+players)
+    if(players==1){
+        socket.emit('wait');
+    }else{
+      socket.emit('newGame');
+      socket.broadcast.emit('newGame',roomId);
+      socket.emit('newGame',roomId);
+    }
+})
+
+socket.on('beg',function(roomId){
+  players = games[roomId].players
+  if(players==2)
+    color="black"
+  else
+    color="white"
+  socket.emit('player', { playerId, players, color, roomId })
+  socket.emit('player1',roomId)
+  socket.emit('player2',roomId)
+})
+
   socket.on('disconnect', function () {
     var r;
     for (let i = 0; i < 151; i++) {
@@ -267,8 +346,8 @@ io.on('connection', function(socket) {
 
     // socket.leave(r); 
     socket.broadcast.emit('player1',r);  
-    
-    socket.broadcast.emit('nan',r);
+    socket.broadcast.emit('nan',r); 
+
     // socket.broadcast.to(r).emit('nan');
     console.log(playerId + ' disconnected');
     console.log(games[r]);
