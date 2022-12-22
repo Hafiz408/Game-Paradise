@@ -1,5 +1,5 @@
 game = new Chess();
-var socket = io();
+var socket = io('/',{transports: ['websocket'],upgrade:false});
 
 var color = "white";
 var players;
