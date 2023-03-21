@@ -1,7 +1,7 @@
 # Game Paradise
  It is a web application developed using socket.io in Node.js . It allows multiple dual player games to take place simultaneously within different rooms. The games available are : Rock Paper Scissor , Tic Tac Toe & Chess .
  
- Click this link to check it out : https://game-paradise.herokuapp.com/
+ Click this link to check it out : https://game-paradise.netlify.app/
  
  ### To run this app:
   1. Clone this repository
